@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild, ViewContainerRef } from '@angular/core';
 
 @Component({
   selector: 'app-root',
@@ -7,4 +7,11 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'ng-dynamic-ui';
+
+  @ViewChild('dynamic', {
+    static: true,
+    read: ViewContainerRef
+  }) viewContainerRef: ViewContainerRef;
+
+
 }
