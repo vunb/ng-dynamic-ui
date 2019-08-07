@@ -1,78 +1,117 @@
 import {
-    Compiler,
-    Component,
-    ComponentFactory,
-    ComponentFactoryResolver,
-    ComponentRef,
-    Inject,
-    Injectable,
-    Type,
-    ViewContainerRef
-  } from '@angular/core';
+  Compiler,
+  Component,
+  ComponentFactory,
+  ComponentFactoryResolver,
+  ComponentRef,
+  Inject,
+  Injectable,
+  Type,
+  ViewContainerRef,
+  NgModule,
+  Injector,
+  NgModuleRef,
+} from '@angular/core';
 
 import { IDynamicDataComponent } from './dynamic-data.component';
+import { CommonModule } from '@angular/common';
+import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { FormsModule } from '@angular/forms';
 
-@Injectable()
-  export class DynamicLoaderService {
-    // config via setter, cause by DynamicLoaderService is a service (not a
-    // component)
-    private rooViewContainer: ViewContainerRef;
+interface DataUiFactory {
+  factory: ComponentFactory<any>;
+  dataUi: any;
+}
 
-    constructor(
-      @Inject(ComponentFactoryResolver) private factoryResolver: ComponentFactoryResolver
-    ) { }
+@Injectable({
+  providedIn: 'root'
+})
+export class DynamicLoaderService {
+  // config via setter, cause by DynamicLoaderService is a service (not a
+  // component)
+  private rooViewContainer: ViewContainerRef;
+  private dynamicFactories: {
+    [className: string]: DataUiFactory
+  } = {};
 
-    setRootViewContainerRef(viewContainerRef) {
-      this.rooViewContainer = viewContainerRef;
+  constructor(
+    @Inject(ComponentFactoryResolver) private factoryResolver: ComponentFactoryResolver,
+    private compiler: Compiler,
+    private injector: Injector,
+    private module: NgModuleRef<any>,
+  ) { }
+
+  /**
+   * V2:
+   * @param dynamicView
+   * @param dataUi
+   */
+  private async dynamicFactory(
+    dynamicView: Type<IDynamicDataComponent>,
+    dataUi: any
+  ): Promise<DataUiFactory> {
+
+    const componentName = dynamicView.name;
+    const dataUiFactory = this.dynamicFactories[componentName];
+    if (dataUiFactory) {
+      return dataUiFactory;
     }
 
-    createDynamicComponent(dynamicView: Type<IDynamicDataComponent>, data?: any,
-                           options?: any, addSheet?: Function) {
-      if (typeof dynamicView === 'undefined') {
-        return null;
-      }
 
-      const factory = this.factoryResolver.resolveComponentFactory(dynamicView);
-      const component = factory.create(this.rooViewContainer.parentInjector);
+    dataUi = dataUi || {};
+    const dynamicComponent = Component({
+      styles: [dataUi.style || ''],
+      template: dataUi.template || 'Hello',
+      encapsulation: dataUi.encapsulation || 0
+    })(dynamicView);
 
-      const myComponent: IDynamicDataComponent =
-        component.instance as IDynamicDataComponent;
-      myComponent.data = data;
-      myComponent.options = options;
-      myComponent.addSheet = addSheet;
-      myComponent.cmpInstance = component;
+    const dynamicModule = NgModule({
+      declarations: [dynamicComponent],
+      imports: [
+        CommonModule,
+        BrowserModule,
+        BrowserAnimationsModule,
+        FormsModule
+      ]
+    })(class { });
 
-      this.rooViewContainer.clear();
-      this.rooViewContainer.insert(component.hostView);
-      return myComponent;
-    }
-
-    createNewComponentLoader(viewContainerRef) {
-      const loader = new DynamicLoaderService(this.factoryResolver);
-      loader.setRootViewContainerRef(viewContainerRef);
-      return loader;
-    }
-
-    resolveComponentFactory(dynamicView: Type<IDynamicDataComponent>) {
-      return this.factoryResolver.resolveComponentFactory(dynamicView);
-    }
-
-    /**
-     * V2:
-     * @param dynamicView
-     * @param dataUi
-     */
-
-    createNewComponent(dynamicView: Type<IDynamicDataComponent>, dataUi: any) {
-      const dynamicComponent = Component({
-        styles: [dataUi.style || ''],
-        template: dataUi.template,
-        encapsulation: dataUi.encapsulation || 0
-      })(dynamicView);
-
-    }
+    const factories = await this.compiler.compileModuleAndAllComponentsAsync(dynamicModule);
+    this.dynamicFactories[componentName] = {
+      factory: factories.componentFactories[0],
+      dataUi,
+    };
+    return this.dynamicFactories[componentName];
   }
+
+  createDynamicComponent(dynamic: ViewContainerRef, dynamicView: Type<IDynamicDataComponent>, dataUi?: any) {
+    this.dynamicFactory(dynamicView, dataUi).then((dataUiFactory) => {
+
+      // const cmpRef = dataUiFactory.factory.create(this.injector, [], null, this.module);
+      const cmpRef = dynamic.createComponent(dataUiFactory.factory);
+
+      this.clearDynamicCache(dynamic);
+      // dynamic._cache = {
+      //   component: cmpRef,
+      //   subscribe
+      // };
+      dynamic.insert(cmpRef.hostView);
+    });
+  }
+
+  // noinspection JSMethodCanBeStatic
+  private clearDynamicCache(dynamic: ViewContainerRef) {
+    // const cache = (dynamic as any)._cache as ComponentAndSubscribe;
+    // if (cache) {
+    //   cache.component.destroy();
+    //   cache.subscribe.unsubscribe();
+    // }
+    dynamic.clear();
+  }
+
+}
   // https://github.com/xiyuan-fengyu/ppspider/blob/9beb835a49350220f4333c6b24734a359ac5f59e/ui/src/app/service/dynamic.service.ts
   // https://github.com/xiyuan-fengyu/ppspider/blob/master/src/spider/data-ui/DbHelper.ts
   // https://github.com/xiyuan-fengyu/ppspider/blob/9beb835a49350220f4333c6b24734a359ac5f59e/src/spider/decorators/DataUi.ts
   // https://stackoverflow.com/questions/34465214/access-meta-annotation-inside-class-typescript
+  // https://medium.com/front-end-weekly/dynamically-add-components-to-the-dom-with-angular-71b0cb535286
