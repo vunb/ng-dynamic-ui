@@ -1,8 +1,22 @@
-<!--The content below is only a placeholder and can be replaced.-->
-<div style="text-align:center">
-  <h1>
-    Dynamic Test A Component
-  </h1>
-  <p>Hello {{ title }}!</p>
+<div class="container-fluid">
+  <div style="text-align:center">
+    <h1>
+      Dynamic Test A Component
+    </h1>
+    <p>Hello {{ title }}!</p>
+  </div>
+  <div class="row flex-xl-nowrap">
+    <main class="col-12">
+      <div class="buttons">
+        <button type="button" class="btn btn-info mr-1" (click)="template1()">Template 1</button>
+        <button type="button" class="btn btn-dark mr-1" (click)="template2()">Template 2</button>
+        <button type="button" class="btn btn-light" (click)="customHtml()">Custom</button>
+      </div>
+      <div class="form-group">
+        <label for="t1">Custom text/html</label>
+        <textarea class="form-control" id="t1" rows="3" [(ngModel)]="html"></textarea>
+      </div>
+    </main>
+  </div>
+  <template #dynamic></template>
 </div>
-<template #dynamic></template>

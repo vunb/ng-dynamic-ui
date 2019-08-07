@@ -9,6 +9,9 @@ import { DynamicTestAComponent } from '@app/dynamic/dynamic-testa.component';
 })
 export class AppComponent implements OnInit {
   title = 'ng-dynamic-ui';
+  html = `
+  Say <strong style="color:green;">{{test}}</strong> from {{name}}!
+  `;
 
   constructor(
     private dynamicService: DynamicLoaderService,
@@ -21,6 +24,28 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     this.dynamicService.createDynamicComponent(this.dynamic, DynamicTestAComponent);
+  }
+
+  template1() {
+    this.dynamicService.createDynamicComponent(this.dynamic, DynamicTestAComponent, {
+      formType: 'template1'
+    });
+  }
+
+  template2() {
+    this.dynamicService.createDynamicComponent(this.dynamic, DynamicTestAComponent, {
+      formType: 'template2',
+      template: '<h2>This is a dynamic template!',
+      style: `h2 {color: red;}`
+    });
+  }
+
+  customHtml() {
+    this.dynamicService.createDynamicComponent(this.dynamic, DynamicTestAComponent, {
+      formType: 'custom',
+      template: this.html,
+      noCache: true,
+    });
   }
 
 }

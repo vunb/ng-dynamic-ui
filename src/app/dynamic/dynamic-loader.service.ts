@@ -52,14 +52,16 @@ export class DynamicLoaderService {
     dataUi: any
   ): Promise<DataUiFactory> {
 
-    const componentName = dynamicView.name;
+    dataUi = dataUi || {};
+    // Must clear cache.
+    this.compiler.clearCache();
+
+    const componentName = dataUi.formType || dynamicView.name;
     const dataUiFactory = this.dynamicFactories[componentName];
-    if (dataUiFactory) {
+    if (dataUiFactory && !dataUi.noCache) {
       return dataUiFactory;
     }
 
-
-    dataUi = dataUi || {};
     const dynamicComponent = Component({
       styles: [dataUi.style || ''],
       template: dataUi.template || 'Hello',
@@ -87,8 +89,8 @@ export class DynamicLoaderService {
   createDynamicComponent(dynamic: ViewContainerRef, dynamicView: Type<IDynamicDataComponent>, dataUi?: any) {
     this.dynamicFactory(dynamicView, dataUi).then((dataUiFactory) => {
 
-      // const cmpRef = dataUiFactory.factory.create(this.injector, [], null, this.module);
-      const cmpRef = dynamic.createComponent(dataUiFactory.factory);
+      const cmpRef = dataUiFactory.factory.create(this.injector, [], null, this.module);
+      // const cmpRef = dynamic.createComponent(dataUiFactory.factory);
 
       this.clearDynamicCache(dynamic);
       // dynamic._cache = {

@@ -2,9 +2,9 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule, COMPILER_OPTIONS, CompilerFactory, Compiler } from '@angular/core';
 
 import { AppComponent } from './app.component';
-import { DynamicTestAComponent } from '@app/dynamic/dynamic-testa.component';
 import { JitCompilerFactory } from '@angular/platform-browser-dynamic';
 import { DynamicLoaderService } from '@app/dynamic/dynamic-loader.service';
+import { FormsModule } from '@angular/forms';
 
 export function createCompiler(fn: CompilerFactory): Compiler {
   return fn.createCompiler();
@@ -15,7 +15,8 @@ export function createCompiler(fn: CompilerFactory): Compiler {
     AppComponent
   ],
   imports: [
-    BrowserModule
+    BrowserModule,
+    FormsModule,
   ],
   providers: [
     DynamicLoaderService,
@@ -37,9 +38,6 @@ export function createCompiler(fn: CompilerFactory): Compiler {
       deps: [CompilerFactory]
     },
   ],
-  bootstrap: [AppComponent],
-  entryComponents: [
-    DynamicTestAComponent
-  ]
+  bootstrap: [AppComponent]
 })
 export class AppModule { }
