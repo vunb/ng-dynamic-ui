@@ -9,8 +9,7 @@ import { DynamicTestAComponent } from '@app/dynamic/dynamic-testa.component';
 })
 export class AppComponent implements OnInit {
   title = 'ng-dynamic-ui';
-  html = `
-  Say <strong style="color:green;">{{test}}</strong> from {{name}}!
+  html = `Say <strong style="color:green;">{{test}}</strong> from {{name}}!
   `;
 
   constructor(
@@ -28,7 +27,8 @@ export class AppComponent implements OnInit {
 
   template1() {
     this.dynamicService.createDynamicComponent(this.dynamic, DynamicTestAComponent, {
-      formType: 'template1'
+      formType: 'template1',
+      template: '<h2>Prints model `test`: {{test}}, author: {{name}}',
     });
   }
 

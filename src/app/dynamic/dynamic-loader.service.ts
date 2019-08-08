@@ -68,6 +68,8 @@ export class DynamicLoaderService {
       encapsulation: dataUi.encapsulation || 0
     })(dynamicView);
 
+    @NgModule({}) class DynamicModule { }
+
     const dynamicModule = NgModule({
       declarations: [dynamicComponent],
       imports: [
@@ -76,28 +78,30 @@ export class DynamicLoaderService {
         BrowserAnimationsModule,
         FormsModule
       ]
-    })(class { });
+    })(DynamicModule);
 
     const factories = await this.compiler.compileModuleAndAllComponentsAsync(dynamicModule);
+    const factory = factories.componentFactories[0];
+
+    // const factory = this.factoryResolver.resolveComponentFactory(dynamicComponent);
     this.dynamicFactories[componentName] = {
-      factory: factories.componentFactories[0],
+      factory,
       dataUi,
     };
     return this.dynamicFactories[componentName];
   }
 
-  createDynamicComponent(dynamic: ViewContainerRef, dynamicView: Type<IDynamicDataComponent>, dataUi?: any) {
+  createDynamicComponent(container: ViewContainerRef, dynamicView: Type<IDynamicDataComponent>, dataUi?: any) {
     this.dynamicFactory(dynamicView, dataUi).then((dataUiFactory) => {
 
       const cmpRef = dataUiFactory.factory.create(this.injector, [], null, this.module);
-      // const cmpRef = dynamic.createComponent(dataUiFactory.factory);
 
-      this.clearDynamicCache(dynamic);
+      this.clearDynamicCache(container);
       // dynamic._cache = {
       //   component: cmpRef,
       //   subscribe
       // };
-      dynamic.insert(cmpRef.hostView);
+      container.insert(cmpRef.hostView);
     });
   }
 
