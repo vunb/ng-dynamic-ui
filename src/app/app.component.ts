@@ -17,7 +17,7 @@ export class AppComponent implements OnInit {
   ) {}
 
   @ViewChild('dynamic', {
-    static: true,
+    // static: true,
     read: ViewContainerRef
   }) dynamic: ViewContainerRef;
 

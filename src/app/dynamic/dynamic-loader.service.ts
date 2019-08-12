@@ -68,7 +68,7 @@ export class DynamicLoaderService {
       encapsulation: dataUi.encapsulation || 0
     })(dynamicView);
 
-    @NgModule({}) class DynamicModule { }
+    // @NgModule({}) class DynamicModuleAbc { }
 
     const dynamicModule = NgModule({
       declarations: [dynamicComponent],
@@ -78,7 +78,7 @@ export class DynamicLoaderService {
         BrowserAnimationsModule,
         FormsModule
       ]
-    })(DynamicModule);
+    })(class {});
 
     const factories = await this.compiler.compileModuleAndAllComponentsAsync(dynamicModule);
     const factory = factories.componentFactories[0];
